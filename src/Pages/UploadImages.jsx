@@ -1,29 +1,50 @@
-import React, { useState, useRef, useCallback } from 'react';
-import { Camera, Upload, X, Check, ArrowRight, ArrowLeft } from 'lucide-react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { Camera, Upload, X, Check, ArrowRight, ArrowLeft, Loader } from 'lucide-react';
 
 const PhotoUploadApp = () => {
-  const [screen, setScreen] = useState('home'); // home, camera, preview, uploading, success
+  const [screen, setScreen] = useState('home'); // home, camera, uploading, success
   const [photos, setPhotos] = useState([]);
   const [selectedPhotos, setSelectedPhotos] = useState(new Set());
   const [uploadProgress, setUploadProgress] = useState({ current: 0, total: 0 });
   const [stream, setStream] = useState(null);
+  const [cameraLoading, setCameraLoading] = useState(false);
+  const [fullScreenPhoto, setFullScreenPhoto] = useState(null);
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [showPreviewPopup, setShowPreviewPopup] = useState(false);
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const fileInputRef = useRef(null);
+  const longPressTimer = useRef(null);
 
-  // Start camera
+  // Start camera with proper initialization
   const startCamera = async () => {
+    setCameraLoading(true);
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: 'environment' },
+        video: { 
+          facingMode: 'environment',
+          width: { ideal: 1920 },
+          height: { ideal: 1080 }
+        },
         audio: false 
       });
+      
       setStream(mediaStream);
+      setScreen('camera');
+      
+      // Wait for video to be ready
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
+        await new Promise((resolve) => {
+          videoRef.current.onloadedmetadata = () => {
+            videoRef.current.play();
+            resolve();
+          };
+        });
       }
-      setScreen('camera');
+      setCameraLoading(false);
     } catch (err) {
+      setCameraLoading(false);
       alert('Camera access denied or not available');
     }
   };
@@ -69,7 +90,23 @@ const PhotoUploadApp = () => {
     }));
     setPhotos(newPhotos);
     setSelectedPhotos(new Set(newPhotos.map(p => p.id)));
-    setScreen('preview');
+    setShowPreviewPopup(true);
+  };
+
+  // Long press handlers for photo selection
+  const handleTouchStart = (photoId) => {
+    if (!selectionMode) {
+      longPressTimer.current = setTimeout(() => {
+        setSelectionMode(true);
+        togglePhotoSelection(photoId);
+      }, 500); // 500ms long press
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+    }
   };
 
   // Toggle photo selection
@@ -85,16 +122,18 @@ const PhotoUploadApp = () => {
     });
   };
 
-  // Go to preview
-  const goToPreview = () => {
-    stopCamera();
-    setScreen('preview');
+  // Handle photo click (tap in selection mode or long press)
+  const handlePhotoClick = (photoId) => {
+    if (selectionMode) {
+      togglePhotoSelection(photoId);
+    }
   };
 
   // Upload photos
   const uploadPhotos = async () => {
     const selectedPhotosList = photos.filter(p => selectedPhotos.has(p.id));
     setUploadProgress({ current: 0, total: selectedPhotosList.length });
+    setShowPreviewPopup(false);
     setScreen('uploading');
 
     const batchSize = 5;
@@ -117,13 +156,13 @@ const PhotoUploadApp = () => {
         uploaded += batch.length;
         setUploadProgress({ current: uploaded, total: selectedPhotosList.length });
         
-        // Wait 1 second before next batch
         if (i + batchSize < selectedPhotosList.length) {
           await new Promise(resolve => setTimeout(resolve, 1000));
         }
       } catch (error) {
         alert('Upload failed: ' + error.message);
-        setScreen('preview');
+        setShowPreviewPopup(true);
+        setScreen('camera');
         return;
       }
     }
@@ -137,6 +176,9 @@ const PhotoUploadApp = () => {
     setPhotos([]);
     setSelectedPhotos(new Set());
     setUploadProgress({ current: 0, total: 0 });
+    setSelectionMode(false);
+    setShowPreviewPopup(false);
+    setFullScreenPhoto(null);
     setScreen('home');
   };
 
@@ -181,111 +223,198 @@ const PhotoUploadApp = () => {
   // Camera Screen
   if (screen === 'camera') {
     return (
-      <div className="fixed inset-0 bg-black">
-        <video
-          ref={videoRef}
-          autoPlay
-          playsInline
-          className="w-full h-full object-cover"
-        />
-        <canvas ref={canvasRef} className="hidden" />
-        
-        {/* Bottom Controls */}
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
-          <div className="flex items-center justify-between max-w-md mx-auto">
-            {/* Photo Counter */}
-            <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full text-white font-medium">
-              {photos.length} Photo{photos.length !== 1 ? 's' : ''}
-            </div>
-
-            {/* Capture Button */}
-            <button
-              onClick={capturePhoto}
-              className="w-20 h-20 rounded-full bg-white border-4 border-gray-300 shadow-lg active:scale-95 transition-transform"
-            />
-
-            {/* Next Button */}
-            <button
-              onClick={goToPreview}
-              disabled={photos.length === 0}
-              className="bg-blue-500 disabled:bg-gray-500 disabled:opacity-50 text-white p-4 rounded-full shadow-lg active:scale-95 transition-all"
-            >
-              <ArrowRight size={24} />
-            </button>
-          </div>
-        </div>
-
-        {/* Back Button */}
-        <button
-          onClick={() => {
-            stopCamera();
-            resetApp();
-          }}
-          className="absolute top-6 left-6 bg-black/50 backdrop-blur-sm text-white p-3 rounded-full"
-        >
-          <ArrowLeft size={24} />
-        </button>
-      </div>
-    );
-  }
-
-  // Preview Screen
-  if (screen === 'preview') {
-    const selectedCount = selectedPhotos.size;
-    
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
-        <div className="max-w-4xl mx-auto">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+        <div className="max-w-2xl mx-auto">
           {/* Header */}
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-4">
             <button
-              onClick={resetApp}
-              className="text-gray-600 hover:text-gray-800 flex items-center space-x-2"
+              onClick={() => {
+                stopCamera();
+                resetApp();
+              }}
+              className="text-gray-700 hover:text-gray-900 flex items-center space-x-2 bg-white px-4 py-2 rounded-lg shadow"
             >
               <ArrowLeft size={20} />
               <span>Back</span>
             </button>
-            <div className="text-lg font-semibold text-gray-700">
-              Selected {selectedCount} / {photos.length} Photo{photos.length !== 1 ? 's' : ''}
-            </div>
+            <h2 className="text-xl font-bold text-gray-800">Camera</h2>
+            <div className="w-20"></div>
           </div>
 
-          {/* Photo Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-6">
-            {photos.map(photo => {
-              const isSelected = selectedPhotos.has(photo.id);
-              return (
-                <div
-                  key={photo.id}
-                  onClick={() => togglePhotoSelection(photo.id)}
-                  className={`relative aspect-square rounded-xl overflow-hidden cursor-pointer transition-all duration-200 ${
-                    isSelected ? 'ring-4 ring-blue-500 scale-100' : 'opacity-50 scale-95'
-                  }`}
+          {/* Camera View */}
+          <div className="relative bg-black rounded-2xl overflow-hidden shadow-2xl mb-4">
+            {cameraLoading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black z-10">
+                <Loader size={48} className="text-white animate-spin" />
+              </div>
+            )}
+            <video
+              ref={videoRef}
+              autoPlay
+              playsInline
+              muted
+              className="w-full aspect-[3/4] object-cover"
+            />
+            <canvas ref={canvasRef} className="hidden" />
+            
+            {/* Bottom Controls Overlay */}
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
+              <div className="flex items-end justify-between">
+                {/* Photo Counter and Thumbnails - Clickable */}
+                <button
+                  onClick={() => photos.length > 0 && setShowPreviewPopup(true)}
+                  className="flex flex-col space-y-2"
+                  disabled={photos.length === 0}
                 >
-                  <img
-                    src={photo.url}
-                    alt="Preview"
-                    className="w-full h-full object-cover"
-                  />
-                  {isSelected && (
-                    <div className="absolute top-2 right-2 bg-blue-500 text-white rounded-full p-1">
-                      <Check size={20} />
+                  <div className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-white text-sm font-medium">
+                    {photos.length} Photo{photos.length !== 1 ? 's' : ''}
+                  </div>
+                  {photos.length > 0 && (
+                    <div className="flex space-x-1">
+                      {photos.slice(-3).reverse().map((photo, idx) => (
+                        <div
+                          key={photo.id}
+                          className="w-12 h-12 rounded-lg overflow-hidden border-2 border-white shadow-lg"
+                          style={{ marginLeft: idx > 0 ? '-8px' : '0' }}
+                        >
+                          <img
+                            src={photo.url}
+                            alt="Thumbnail"
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      ))}
                     </div>
                   )}
-                </div>
-              );
-            })}
-          </div>
+                </button>
 
-          {/* Upload Button */}
-          <button
-            onClick={uploadPhotos}
-            disabled={selectedCount === 0}
-            className="w-full bg-gradient-to-r from-green-500 to-green-600 disabled:from-gray-400 disabled:to-gray-500 text-white py-4 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 text-lg font-semibold disabled:cursor-not-allowed"
-          >
-            Upload {selectedCount} Photo{selectedCount !== 1 ? 's' : ''}
-          </button>
+                {/* Capture Button */}
+                <button
+                  onClick={capturePhoto}
+                  className="w-20 h-20 rounded-full bg-white border-4 border-gray-300 shadow-lg active:scale-95 transition-transform flex-shrink-0"
+                />
+
+                {/* Spacer for symmetry */}
+                <div className="w-20"></div>
+              </div>
+            </div>
+          </div>
         </div>
+
+        {/* Preview Popup */}
+        {showPreviewPopup && (
+          <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+              {/* Popup Header */}
+              <div className="flex items-center justify-between p-4 border-b">
+                <h3 className="text-xl font-bold text-gray-800">
+                  {selectionMode ? 'Select Photos' : 'Your Photos'}
+                </h3>
+                <div className="flex items-center space-x-4">
+                  {selectionMode && (
+                    <span className="text-sm font-medium text-gray-600">
+                      {selectedPhotos.size} selected
+                    </span>
+                  )}
+                  <button
+                    onClick={() => {
+                      setShowPreviewPopup(false);
+                      setSelectionMode(false);
+                    }}
+                    className="text-gray-500 hover:text-gray-700"
+                  >
+                    <X size={24} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Photo Grid */}
+              <div className="flex-1 overflow-y-auto p-4">
+                <div className="grid grid-cols-3 gap-2">
+                  {photos.map(photo => {
+                    const isSelected = selectedPhotos.has(photo.id);
+                    return (
+                      <div
+                        key={photo.id}
+                        onClick={() => handlePhotoClick(photo.id)}
+                        onTouchStart={() => handleTouchStart(photo.id)}
+                        onTouchEnd={handleTouchEnd}
+                        onMouseDown={() => handleTouchStart(photo.id)}
+                        onMouseUp={handleTouchEnd}
+                        onMouseLeave={handleTouchEnd}
+                        className={`relative aspect-square rounded-lg overflow-hidden cursor-pointer transition-all duration-200 ${
+                          selectionMode
+                            ? isSelected
+                              ? 'ring-4 ring-blue-500 scale-100'
+                              : 'opacity-50 scale-95'
+                            : 'hover:scale-105'
+                        }`}
+                      >
+                        <img
+                          src={photo.url}
+                          alt="Preview"
+                          className="w-full h-full object-cover"
+                          onClick={(e) => {
+                            if (!selectionMode) {
+                              e.stopPropagation();
+                              setFullScreenPhoto(photo);
+                            }
+                          }}
+                        />
+                        {selectionMode && isSelected && (
+                          <div className="absolute top-2 right-2 bg-blue-500 text-white rounded-full p-1">
+                            <Check size={16} />
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Popup Footer */}
+              <div className="p-4 border-t space-y-2">
+                {!selectionMode && (
+                  <button
+                    onClick={() => setSelectionMode(true)}
+                    className="w-full bg-blue-500 text-white py-3 rounded-xl font-semibold hover:bg-blue-600 transition-colors"
+                  >
+                    Select Photos to Upload
+                  </button>
+                )}
+                {selectionMode && (
+                  <button
+                    onClick={uploadPhotos}
+                    disabled={selectedPhotos.size === 0}
+                    className="w-full bg-gradient-to-r from-green-500 to-green-600 disabled:from-gray-400 disabled:to-gray-500 text-white py-3 rounded-xl font-semibold disabled:cursor-not-allowed hover:shadow-lg transition-all"
+                  >
+                    Upload {selectedPhotos.size} Photo{selectedPhotos.size !== 1 ? 's' : ''}
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Full Screen Photo View */}
+        {fullScreenPhoto && (
+          <div
+            className="fixed inset-0 bg-black z-[60] flex items-center justify-center"
+            onClick={() => setFullScreenPhoto(null)}
+          >
+            <button
+              className="absolute top-4 right-4 text-white bg-black/50 rounded-full p-2"
+              onClick={() => setFullScreenPhoto(null)}
+            >
+              <X size={24} />
+            </button>
+            <img
+              src={fullScreenPhoto.url}
+              alt="Full screen"
+              className="max-w-full max-h-full object-contain"
+            />
+          </div>
+        )}
       </div>
     );
   }
@@ -309,7 +438,6 @@ const PhotoUploadApp = () => {
             </p>
           </div>
 
-          {/* Progress Bar */}
           <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
             <div
               className="bg-gradient-to-r from-blue-500 to-blue-600 h-full rounded-full transition-all duration-300"
