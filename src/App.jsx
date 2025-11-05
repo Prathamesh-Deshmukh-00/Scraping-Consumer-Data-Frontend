@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import BillPage from "./Pages/BillPage.jsx";
+import PhotoUploadApp from "./Pages/UploadImages.jsx";
 import './App.css'
 
 function App() {
@@ -8,6 +9,7 @@ function App() {
   return (
    <>
   <BillPage/>
+  <PhotoUploadApp/>
    </>
   )
 }
