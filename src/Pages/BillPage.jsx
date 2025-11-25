@@ -48,6 +48,19 @@ const BillPage = () => {
     fetchBills();
   }, []);
 
+  // ✅ Fetch bills from backend
+  useEffect(() => {
+    const fetchBills = async () => {
+      try {
+        const res = await axios.get("/api/bills/BillNumber");
+        console.log("✅ Bill Numbers is :", res.data);
+      } catch (err) {
+        console.error("❌ Fetch error:", err);
+      }
+    };
+    fetchBills();
+  }, []);
+
   // ✅ Filtering + Sorting
   useEffect(() => {
     let filtered = bills.filter((bill) => {
