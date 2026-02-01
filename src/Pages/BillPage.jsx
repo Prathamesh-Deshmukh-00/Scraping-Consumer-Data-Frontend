@@ -5,8 +5,9 @@ import { Search, Filter, TrendingUp, TrendingDown, Phone, Calendar, AlertCircle,
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 
-// ✅ Set your backend base URL
-axios.defaults.baseURL = "https://scraping-consumer-data.onrender.com";
+
+
+// axios config moved to App.jsx
 
 const BillPage = () => {
   const [bills, setBills] = useState([]);
@@ -89,73 +90,73 @@ const BillPage = () => {
   }, [bills, search, statusFilter, minAmount, maxAmount, showWithMobile, showWithBill, sortOrder]);
 
   // ✅ Update API call
-const handleUpdate = async (id, field, value) => {
-  try {
-    await axios.put(`/api/bills/${id}`, { [field]: value });
-
-    setBills((prev) =>
-      prev.map((b) => (b._id === id ? { ...b, [field]: value } : b))
-    );
-
-    // 🎉 Success popup with inline styles
-    Swal.fire({
-      title:
-        "<h3 style='font-size:16px; font-weight:600; margin:0;'>Updated Successfully!</h3>",
-      icon: "success",
-      position: "center",
-      timer: 1800,
-      showConfirmButton: false,
-      background: "#fff",
-      width: "260px",
-      didOpen: (popup) => {
-        popup.style.borderRadius = "0px"; // Square shape
-        popup.style.padding = "1.2rem"; // Inline padding
-        popup.style.boxShadow = "0 4px 15px rgba(0, 0, 0, 0.15)";
-      },
-    });
-  } catch (err) {
-    console.error("❌ Update failed:", err);
-
-    Swal.fire({
-      title:
-        "<h3 style='font-size:16px; font-weight:600; margin:0;'>Error while updating!</h3>",
-      icon: "error",
-      background: "#fff",
-      confirmButtonColor: "#d33",
-      width: "260px",
-      didOpen: (popup) => {
-        popup.style.borderRadius = "0px";
-        popup.style.padding = "1.2rem";
-        popup.style.boxShadow = "0 4px 15px rgba(0, 0, 0, 0.15)";
-      },
-    });
-  }
-};
-
-
-const handleDelete = async (id) => {
-  const result = await MySwal.fire({
-    title: "Are you sure?",
-    text: "This bill will be permanently deleted!",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonColor: "#d33",
-    cancelButtonColor: "#3085d6",
-    confirmButtonText: "Yes, delete it",
-    cancelButtonText: "Cancel",
-    backdrop: true,
-  });
-
-  if (result.isConfirmed) {
+  const handleUpdate = async (id, field, value) => {
     try {
-      await axios.delete(`/api/bills/${id}`);
-      setBills((prev) => prev.filter((b) => b._id !== id));
-      MySwal.fire("Deleted!", "The bill has been deleted.", "success");
-    } catch {
-      MySwal.fire("Error!", "Something went wrong.", "error");
+      await axios.put(`/api/bills/${id}`, { [field]: value });
+
+      setBills((prev) =>
+        prev.map((b) => (b._id === id ? { ...b, [field]: value } : b))
+      );
+
+      // 🎉 Success popup with inline styles
+      Swal.fire({
+        title:
+          "<h3 style='font-size:16px; font-weight:600; margin:0;'>Updated Successfully!</h3>",
+        icon: "success",
+        position: "center",
+        timer: 1800,
+        showConfirmButton: false,
+        background: "#fff",
+        width: "260px",
+        didOpen: (popup) => {
+          popup.style.borderRadius = "0px"; // Square shape
+          popup.style.padding = "1.2rem"; // Inline padding
+          popup.style.boxShadow = "0 4px 15px rgba(0, 0, 0, 0.15)";
+        },
+      });
+    } catch (err) {
+      console.error("❌ Update failed:", err);
+
+      Swal.fire({
+        title:
+          "<h3 style='font-size:16px; font-weight:600; margin:0;'>Error while updating!</h3>",
+        icon: "error",
+        background: "#fff",
+        confirmButtonColor: "#d33",
+        width: "260px",
+        didOpen: (popup) => {
+          popup.style.borderRadius = "0px";
+          popup.style.padding = "1.2rem";
+          popup.style.boxShadow = "0 4px 15px rgba(0, 0, 0, 0.15)";
+        },
+      });
     }
-  }
-};
+  };
+
+
+  const handleDelete = async (id) => {
+    const result = await MySwal.fire({
+      title: "Are you sure?",
+      text: "This bill will be permanently deleted!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it",
+      cancelButtonText: "Cancel",
+      backdrop: true,
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await axios.delete(`/api/bills/${id}`);
+        setBills((prev) => prev.filter((b) => b._id !== id));
+        MySwal.fire("Deleted!", "The bill has been deleted.", "success");
+      } catch {
+        MySwal.fire("Error!", "Something went wrong.", "error");
+      }
+    }
+  };
 
   const getStatusIcon = (status) => {
     switch (status) {
@@ -198,7 +199,7 @@ const handleDelete = async (id) => {
     return months[month] || '01';
   };
 
-  const totalAmount = filteredBills.reduce((sum, bill) => 
+  const totalAmount = filteredBills.reduce((sum, bill) =>
     sum + parseInt(bill.amountToPay?.replace(/[^\d]/g, "") || 0), 0
   );
 
@@ -210,14 +211,13 @@ const handleDelete = async (id) => {
   };
 
   return (
-    <div className={`min-h-screen transition-all duration-500 ${
-      theme === "dark" 
-        ? "bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900" 
-        : "bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50"
-    }`}>
+    <div className={`min-h-screen transition-all duration-500 ${theme === "dark"
+      ? "bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900"
+      : "bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50"
+      }`}>
       <div className="max-w-7xl mx-auto p-4 md:p-6 lg:p-8">
         {/* Header */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex flex-wrap items-center justify-between gap-4 mb-8"
@@ -246,11 +246,10 @@ const handleDelete = async (id) => {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <motion.div 
+          <motion.div
             whileHover={{ scale: 1.05, y: -5 }}
-            className={`p-5 rounded-2xl shadow-lg ${
-              theme === "dark" ? "bg-gray-800 border border-gray-700" : "bg-white"
-            }`}
+            className={`p-5 rounded-2xl shadow-lg ${theme === "dark" ? "bg-gray-800 border border-gray-700" : "bg-white"
+              }`}
           >
             <div className="flex items-center justify-between">
               <div>
@@ -263,11 +262,10 @@ const handleDelete = async (id) => {
             </div>
           </motion.div>
 
-          <motion.div 
+          <motion.div
             whileHover={{ scale: 1.05, y: -5 }}
-            className={`p-5 rounded-2xl shadow-lg ${
-              theme === "dark" ? "bg-gray-800 border border-gray-700" : "bg-white"
-            }`}
+            className={`p-5 rounded-2xl shadow-lg ${theme === "dark" ? "bg-gray-800 border border-gray-700" : "bg-white"
+              }`}
           >
             <div className="flex items-center justify-between">
               <div>
@@ -280,11 +278,10 @@ const handleDelete = async (id) => {
             </div>
           </motion.div>
 
-          <motion.div 
+          <motion.div
             whileHover={{ scale: 1.05, y: -5 }}
-            className={`p-5 rounded-2xl shadow-lg ${
-              theme === "dark" ? "bg-gray-800 border border-gray-700" : "bg-white"
-            }`}
+            className={`p-5 rounded-2xl shadow-lg ${theme === "dark" ? "bg-gray-800 border border-gray-700" : "bg-white"
+              }`}
           >
             <div className="flex items-center justify-between">
               <div>
@@ -297,11 +294,10 @@ const handleDelete = async (id) => {
             </div>
           </motion.div>
 
-          <motion.div 
+          <motion.div
             whileHover={{ scale: 1.05, y: -5 }}
-            className={`p-5 rounded-2xl shadow-lg ${
-              theme === "dark" ? "bg-gray-800 border border-gray-700" : "bg-white"
-            }`}
+            className={`p-5 rounded-2xl shadow-lg ${theme === "dark" ? "bg-gray-800 border border-gray-700" : "bg-white"
+              }`}
           >
             <div className="flex items-center justify-between">
               <div>
@@ -318,13 +314,11 @@ const handleDelete = async (id) => {
         {/* Search and Filter Toggle */}
         <div className="flex flex-col md:flex-row gap-4 mb-6">
           <div className={`flex-1 relative ${theme === "dark" ? "bg-gray-800" : "bg-white"} rounded-xl shadow-lg`}>
-            <Search className={`absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 ${
-              theme === "dark" ? "text-gray-400" : "text-gray-500"
-            }`} />
+            <Search className={`absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 ${theme === "dark" ? "text-gray-400" : "text-gray-500"
+              }`} />
             <input
-              className={`w-full pl-12 pr-4 py-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                theme === "dark" ? "bg-gray-800 text-white" : "bg-white"
-              }`}
+              className={`w-full pl-12 pr-4 py-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 ${theme === "dark" ? "bg-gray-800 text-white" : "bg-white"
+                }`}
               placeholder="Search by customer name..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -332,11 +326,10 @@ const handleDelete = async (id) => {
           </div>
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className={`px-6 py-4 rounded-xl shadow-lg flex items-center gap-2 font-semibold transition-all ${
-              showFilters 
-                ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white" 
-                : theme === "dark" ? "bg-gray-800 text-white hover:bg-gray-700" : "bg-white hover:bg-gray-50"
-            }`}
+            className={`px-6 py-4 rounded-xl shadow-lg flex items-center gap-2 font-semibold transition-all ${showFilters
+              ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white"
+              : theme === "dark" ? "bg-gray-800 text-white hover:bg-gray-700" : "bg-white hover:bg-gray-50"
+              }`}
           >
             <Filter className="w-5 h-5" />
             Filters
@@ -350,15 +343,13 @@ const handleDelete = async (id) => {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              className={`mb-6 p-6 rounded-2xl shadow-lg ${
-                theme === "dark" ? "bg-gray-800 border border-gray-700" : "bg-white"
-              }`}
+              className={`mb-6 p-6 rounded-2xl shadow-lg ${theme === "dark" ? "bg-gray-800 border border-gray-700" : "bg-white"
+                }`}
             >
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                 <select
-                  className={`p-3 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    theme === "dark" ? "bg-gray-700 border-gray-600 text-white" : "bg-gray-50 border-gray-300"
-                  }`}
+                  className={`p-3 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 ${theme === "dark" ? "bg-gray-700 border-gray-600 text-white" : "bg-gray-50 border-gray-300"
+                    }`}
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
                 >
@@ -371,17 +362,15 @@ const handleDelete = async (id) => {
 
                 <div className="flex gap-2">
                   <input
-                    className={`p-3 rounded-xl border w-1/2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      theme === "dark" ? "bg-gray-700 border-gray-600 text-white" : "bg-gray-50 border-gray-300"
-                    }`}
+                    className={`p-3 rounded-xl border w-1/2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${theme === "dark" ? "bg-gray-700 border-gray-600 text-white" : "bg-gray-50 border-gray-300"
+                      }`}
                     placeholder="Min ₹"
                     value={minAmount}
                     onChange={(e) => setMinAmount(e.target.value)}
                   />
                   <input
-                    className={`p-3 rounded-xl border w-1/2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      theme === "dark" ? "bg-gray-700 border-gray-600 text-white" : "bg-gray-50 border-gray-300"
-                    }`}
+                    className={`p-3 rounded-xl border w-1/2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${theme === "dark" ? "bg-gray-700 border-gray-600 text-white" : "bg-gray-50 border-gray-300"
+                      }`}
                     placeholder="Max ₹"
                     value={maxAmount}
                     onChange={(e) => setMaxAmount(e.target.value)}
@@ -389,9 +378,8 @@ const handleDelete = async (id) => {
                 </div>
 
                 <select
-                  className={`p-3 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    theme === "dark" ? "bg-gray-700 border-gray-600 text-white" : "bg-gray-50 border-gray-300"
-                  }`}
+                  className={`p-3 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 ${theme === "dark" ? "bg-gray-700 border-gray-600 text-white" : "bg-gray-50 border-gray-300"
+                    }`}
                   value={sortOrder}
                   onChange={(e) => setSortOrder(e.target.value)}
                 >
@@ -403,21 +391,19 @@ const handleDelete = async (id) => {
                 <div className="flex gap-2">
                   <button
                     onClick={() => setShowWithMobile(!showWithMobile)}
-                    className={`flex-1 px-4 py-3 rounded-xl transition-all font-medium ${
-                      showWithMobile
-                        ? "bg-green-500 text-white shadow-lg"
-                        : theme === "dark" ? "bg-gray-700 text-gray-300" : "bg-gray-200 text-gray-700"
-                    }`}
+                    className={`flex-1 px-4 py-3 rounded-xl transition-all font-medium ${showWithMobile
+                      ? "bg-green-500 text-white shadow-lg"
+                      : theme === "dark" ? "bg-gray-700 text-gray-300" : "bg-gray-200 text-gray-700"
+                      }`}
                   >
                     <Phone className="w-4 h-4 inline mr-1" /> Mobile
                   </button>
                   <button
                     onClick={() => setShowWithBill(!showWithBill)}
-                    className={`flex-1 px-4 py-3 rounded-xl transition-all font-medium ${
-                      showWithBill
-                        ? "bg-green-500 text-white shadow-lg"
-                        : theme === "dark" ? "bg-gray-700 text-gray-300" : "bg-gray-200 text-gray-700"
-                    }`}
+                    className={`flex-1 px-4 py-3 rounded-xl transition-all font-medium ${showWithBill
+                      ? "bg-green-500 text-white shadow-lg"
+                      : theme === "dark" ? "bg-gray-700 text-gray-300" : "bg-gray-200 text-gray-700"
+                      }`}
                   >
                     <Receipt className="w-4 h-4 inline mr-1" /> Bill
                   </button>
@@ -428,7 +414,7 @@ const handleDelete = async (id) => {
         </AnimatePresence>
 
         {/* Results Counter */}
-        <motion.p 
+        <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className={`mb-6 text-lg ${theme === "dark" ? "text-gray-300" : "text-gray-700"}`}
@@ -444,7 +430,7 @@ const handleDelete = async (id) => {
               {filteredBills.map((bill, index) => {
                 const daysUntilDue = getDaysUntilDue(bill.billDueDate);
                 const isExpanded = expandedCard === bill._id;
-                
+
                 return (
                   <motion.div
                     key={bill._id}
@@ -453,11 +439,10 @@ const handleDelete = async (id) => {
                     exit={{ opacity: 0, scale: 0.9 }}
                     transition={{ delay: index * 0.05 }}
                     whileHover={{ y: -8 }}
-                    className={`relative rounded-2xl shadow-xl overflow-hidden transition-all duration-300 ${
-                      theme === "dark" 
-                        ? "bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700" 
-                        : "bg-white hover:shadow-2xl"
-                    }`}
+                    className={`relative rounded-2xl shadow-xl overflow-hidden transition-all duration-300 ${theme === "dark"
+                      ? "bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700"
+                      : "bg-white hover:shadow-2xl"
+                      }`}
                   >
                     {/* Status Badge */}
                     <div className={`absolute top-0 right-0 px-4 py-2 rounded-bl-2xl ${getStatusColor(bill.status)} flex items-center gap-2 text-white`}>
@@ -473,9 +458,8 @@ const handleDelete = async (id) => {
 
                       {/* Key Info Grid */}
                       <div className="space-y-3 mb-4">
-                        <div className={`flex items-center gap-3 p-3 rounded-xl ${
-                          theme === "dark" ? "bg-gray-700 bg-opacity-50" : "bg-blue-50"
-                        }`}>
+                        <div className={`flex items-center gap-3 p-3 rounded-xl ${theme === "dark" ? "bg-gray-700 bg-opacity-50" : "bg-blue-50"
+                          }`}>
                           <Receipt className="w-5 h-5 text-blue-500" />
                           <div className="flex-1">
                             <p className={`text-xs ${theme === "dark" ? "text-gray-400" : "text-gray-600"}`}>Consumer No.</p>
@@ -483,9 +467,8 @@ const handleDelete = async (id) => {
                           </div>
                         </div>
 
-                        <div className={`flex items-center gap-3 p-3 rounded-xl ${
-                          theme === "dark" ? "bg-gray-700 bg-opacity-50" : "bg-purple-50"
-                        }`}>
+                        <div className={`flex items-center gap-3 p-3 rounded-xl ${theme === "dark" ? "bg-gray-700 bg-opacity-50" : "bg-purple-50"
+                          }`}>
                           <Calendar className="w-5 h-5 text-purple-500" />
                           <div className="flex-1">
                             <p className={`text-xs ${theme === "dark" ? "text-gray-400" : "text-gray-600"}`}>Bill Month</p>
@@ -494,9 +477,8 @@ const handleDelete = async (id) => {
                         </div>
 
                         {bill.mobileNo && (
-                          <div className={`flex items-center gap-3 p-3 rounded-xl ${
-                            theme === "dark" ? "bg-gray-700 bg-opacity-50" : "bg-green-50"
-                          }`}>
+                          <div className={`flex items-center gap-3 p-3 rounded-xl ${theme === "dark" ? "bg-gray-700 bg-opacity-50" : "bg-green-50"
+                            }`}>
                             <Phone className="w-5 h-5 text-green-500" />
                             <div className="flex-1">
                               <p className={`text-xs ${theme === "dark" ? "text-gray-400" : "text-gray-600"}`}>Mobile</p>
@@ -524,9 +506,8 @@ const handleDelete = async (id) => {
                       {/* Expandable Details */}
                       <button
                         onClick={() => setExpandedCard(isExpanded ? null : bill._id)}
-                        className={`w-full py-2 rounded-xl mb-4 font-semibold transition-all ${
-                          theme === "dark" ? "bg-gray-700 hover:bg-gray-600 text-white" : "bg-gray-100 hover:bg-gray-200"
-                        }`}
+                        className={`w-full py-2 rounded-xl mb-4 font-semibold transition-all ${theme === "dark" ? "bg-gray-700 hover:bg-gray-600 text-white" : "bg-gray-100 hover:bg-gray-200"
+                          }`}
                       >
                         {isExpanded ? "Show Less ▲" : "Show More Details ▼"}
                       </button>
@@ -581,23 +562,56 @@ const handleDelete = async (id) => {
 
                       {/* Status Update */}
                       <div className="mb-4">
-                        <label className={`block text-sm font-medium mb-2 ${
-                          theme === "dark" ? "text-gray-300" : "text-gray-700"
-                        }`}>
+                        <label className={`block text-sm font-medium mb-2 ${theme === "dark" ? "text-gray-300" : "text-gray-700"
+                          }`}>
                           Update Status
                         </label>
                         <select
                           value={bill.status}
                           onChange={(e) => handleUpdate(bill._id, "status", e.target.value)}
-                          className={`w-full p-3 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                            theme === "dark" ? "bg-gray-700 border-gray-600 text-white" : "bg-gray-50 border-gray-300"
-                          }`}
+                          className={`w-full p-3 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 ${theme === "dark" ? "bg-gray-700 border-gray-600 text-white" : "bg-gray-50 border-gray-300"
+                            }`}
                         >
                           <option value="pending">Pending</option>
                           <option value="inprocess">In Process</option>
                           <option value="success">Success</option>
                           <option value="fail">Fail</option>
                         </select>
+                        {/* ✅ Priority Selector - Only for In Process */}
+                        <AnimatePresence>
+                          {bill.status === "inprocess" && (
+                            <motion.div
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: "auto" }}
+                              exit={{ opacity: 0, height: 0 }}
+                              className="overflow-hidden mt-3"
+                            >
+                              <label className={`block text-sm font-medium mb-2 ${theme === "dark" ? "text-gray-300" : "text-gray-700"
+                                }`}>
+                                Priority Level
+                              </label>
+                              <div className="flex gap-2">
+                                {[
+                                  { value: "p1", label: "🔥 P1", color: "bg-red-500 text-white" },
+                                  { value: "p2", label: "⚡ P2", color: "bg-orange-500 text-white" },
+                                  { value: "p3", label: "🔹 P3", color: "bg-blue-500 text-white" },
+                                  { value: "none", label: "None", color: "bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300" }
+                                ].map((option) => (
+                                  <button
+                                    key={option.value}
+                                    onClick={() => handleUpdate(bill._id, "priority", option.value)}
+                                    className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${bill.priority === option.value
+                                      ? `${option.color} ring-2 ring-offset-2 ring-blue-400`
+                                      : "bg-gray-100 dark:bg-gray-800 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700"
+                                      }`}
+                                  >
+                                    {option.label}
+                                  </button>
+                                ))}
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
                       </div>
 
                       {/* Notes */}
@@ -609,9 +623,8 @@ const handleDelete = async (id) => {
                           }}
                           placeholder="Add notes or remarks..."
                           rows="3"
-                          className={`w-full p-3 pb-10 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none ${
-                            theme === "dark" ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400" : "bg-gray-50 border-gray-300"
-                          }`}
+                          className={`w-full p-3 pb-10 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none ${theme === "dark" ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400" : "bg-gray-50 border-gray-300"
+                            }`}
                         />
                         <button
                           onClick={() => handleUpdate(bill._id, "note", bill.note)}
@@ -638,13 +651,11 @@ const handleDelete = async (id) => {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className={`text-center py-16 px-4 rounded-2xl ${
-                theme === "dark" ? "bg-gray-800" : "bg-white"
-              }`}
+              className={`text-center py-16 px-4 rounded-2xl ${theme === "dark" ? "bg-gray-800" : "bg-white"
+                }`}
             >
-              <AlertCircle className={`w-16 h-16 mx-auto mb-4 ${
-                theme === "dark" ? "text-gray-600" : "text-gray-400"
-              }`} />
+              <AlertCircle className={`w-16 h-16 mx-auto mb-4 ${theme === "dark" ? "text-gray-600" : "text-gray-400"
+                }`} />
               <p className={`text-xl ${theme === "dark" ? "text-gray-400" : "text-gray-600"}`}>
                 No bills found matching your filters
               </p>

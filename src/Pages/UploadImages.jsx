@@ -20,18 +20,18 @@ const PhotoUploadApp = () => {
   const startCamera = async () => {
     setCameraLoading(true);
     try {
-      const mediaStream = await navigator.mediaDevices.getUserMedia({ 
-        video: { 
+      const mediaStream = await navigator.mediaDevices.getUserMedia({
+        video: {
           facingMode: 'environment',
           width: { ideal: 1920 },
           height: { ideal: 1080 }
         },
-        audio: false 
+        audio: false
       });
-      
+
       setStream(mediaStream);
       setScreen('camera');
-      
+
       // Wait for video to be ready
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
@@ -61,13 +61,13 @@ const PhotoUploadApp = () => {
   const capturePhoto = () => {
     const video = videoRef.current;
     const canvas = canvasRef.current;
-    
+
     if (video && canvas) {
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       const ctx = canvas.getContext('2d');
       ctx.drawImage(video, 0, 0);
-      
+
       canvas.toBlob((blob) => {
         const newPhoto = {
           id: Date.now() + Math.random(),
@@ -88,9 +88,13 @@ const PhotoUploadApp = () => {
       blob: file,
       url: URL.createObjectURL(file)
     }));
-    setPhotos(newPhotos);
-    setSelectedPhotos(new Set(newPhotos.map(p => p.id)));
-    setShowPreviewPopup(true);
+    setPhotos(prev => [...prev, ...newPhotos]);
+    setSelectedPhotos(prev => {
+      const newSet = new Set(prev);
+      newPhotos.forEach(p => newSet.add(p.id));
+      return newSet;
+    });
+    // setShowPreviewPopup(true); // ❌ Disable popup for inline preview
   };
 
   // Long press handlers for photo selection
@@ -129,40 +133,41 @@ const PhotoUploadApp = () => {
     }
   };
 
-  // Upload photos
+  // Upload photos SEQUENTIALLY to show accurate progress
   const uploadPhotos = async () => {
     const selectedPhotosList = photos.filter(p => selectedPhotos.has(p.id));
     setUploadProgress({ current: 0, total: selectedPhotosList.length });
     setShowPreviewPopup(false);
     setScreen('uploading');
 
-    const batchSize = 5;
     let uploaded = 0;
 
-    for (let i = 0; i < selectedPhotosList.length; i += batchSize) {
-      const batch = selectedPhotosList.slice(i, i + batchSize);
+    for (let i = 0; i < selectedPhotosList.length; i++) {
+      const photo = selectedPhotosList[i];
+
+      // Update Progress UI - Force re-render with specific text if needed (we can use the component state below)
+      // Since screen is 'uploading', we can add a specific status message state if needed, 
+      // but for now we rely on the progress counts.
+
       const formData = new FormData();
-      
-      batch.forEach((photo, index) => {
-        formData.append('images', photo.blob, `photo_${i + index}.jpg`);
-      });
+      formData.append('images', photo.blob, `photo_${i}.jpg`);
 
       try {
-        await fetch('https://scraping-consumer-data.onrender.com/api/upload-images', {
+        const backendURL = import.meta.env.VITE_BACKEND_URL || "";
+        await fetch(`${backendURL}/api/upload-images`, {
           method: 'POST',
           body: formData
         });
-        
-        uploaded += batch.length;
+
+        uploaded++;
         setUploadProgress({ current: uploaded, total: selectedPhotosList.length });
-        
-        if (i + batchSize < selectedPhotosList.length) {
-          await new Promise(resolve => setTimeout(resolve, 1000));
-        }
+
+        // Small delay to let user see the progress
+        // await new Promise(resolve => setTimeout(resolve, 500)); 
+
       } catch (error) {
         alert('Upload failed: ' + error.message);
-        setShowPreviewPopup(true);
-        setScreen('camera');
+        setScreen('camera'); // Go back
         return;
       }
     }
@@ -190,7 +195,7 @@ const PhotoUploadApp = () => {
           <h1 className="text-4xl font-bold text-center text-gray-800 mb-12">
             Photo Uploader
           </h1>
-          
+
           <button
             onClick={startCamera}
             className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-6 rounded-2xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center justify-center space-x-3"
@@ -216,6 +221,59 @@ const PhotoUploadApp = () => {
             className="hidden"
           />
         </div>
+
+        {/* 🔹 Inline Preview & Upload Section */}
+        {photos.length > 0 && (
+          <div className="w-full mt-8 animate-fade-in">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-bold text-gray-700">Selected Photos ({selectedPhotos.size})</h3>
+              <button
+                onClick={() => {
+                  setPhotos([]);
+                  setSelectedPhotos(new Set());
+                }}
+                className="text-red-500 text-sm font-medium hover:text-red-700"
+              >
+                Clear All
+              </button>
+            </div>
+
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 mb-6">
+              {photos.map(photo => (
+                <div key={photo.id} className="relative aspect-square rounded-xl overflow-hidden shadow-sm border border-gray-100">
+                  <img
+                    src={photo.url}
+                    alt="Preview"
+                    className="w-full h-full object-cover"
+                  />
+                  <button
+                    onClick={() => {
+                      setPhotos(prev => prev.filter(p => p.id !== photo.id));
+                      setSelectedPhotos(prev => {
+                        const newSet = new Set(prev);
+                        newSet.delete(photo.id);
+                        return newSet;
+                      });
+                    }}
+                    className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-1 hover:bg-red-500 transition-colors"
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <button
+              onClick={uploadPhotos}
+              disabled={selectedPhotos.size === 0}
+              className="w-full bg-green-500 hover:bg-green-600 text-white py-4 rounded-xl font-bold shadow-lg text-lg transition-all active:scale-95 flex items-center justify-center gap-2"
+            >
+              <Upload size={24} />
+              Upload {selectedPhotos.size} Photos Now
+            </button>
+          </div>
+        )}
+
       </div>
     );
   }
@@ -256,7 +314,7 @@ const PhotoUploadApp = () => {
               className="w-full aspect-[3/4] object-cover"
             />
             <canvas ref={canvasRef} className="hidden" />
-            
+
             {/* Bottom Controls Overlay */}
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
               <div className="flex items-end justify-between">
@@ -342,13 +400,12 @@ const PhotoUploadApp = () => {
                         onMouseDown={() => handleTouchStart(photo.id)}
                         onMouseUp={handleTouchEnd}
                         onMouseLeave={handleTouchEnd}
-                        className={`relative aspect-square rounded-lg overflow-hidden cursor-pointer transition-all duration-200 ${
-                          selectionMode
-                            ? isSelected
-                              ? 'ring-4 ring-blue-500 scale-100'
-                              : 'opacity-50 scale-95'
-                            : 'hover:scale-105'
-                        }`}
+                        className={`relative aspect-square rounded-lg overflow-hidden cursor-pointer transition-all duration-200 ${selectionMode
+                          ? isSelected
+                            ? 'ring-4 ring-blue-500 scale-100'
+                            : 'opacity-50 scale-95'
+                          : 'hover:scale-105'
+                          }`}
                       >
                         <img
                           src={photo.url}
@@ -421,8 +478,8 @@ const PhotoUploadApp = () => {
 
   // Uploading Screen
   if (screen === 'uploading') {
-    const percentage = uploadProgress.total > 0 
-      ? Math.round((uploadProgress.current / uploadProgress.total) * 100) 
+    const percentage = uploadProgress.total > 0
+      ? Math.round((uploadProgress.current / uploadProgress.total) * 100)
       : 0;
 
     return (
@@ -432,9 +489,9 @@ const PhotoUploadApp = () => {
             <div className="inline-block p-4 bg-blue-100 rounded-full mb-4">
               <Upload size={48} className="text-blue-600 animate-pulse" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">Uploading...</h2>
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">Extracting number form image...</h2>
             <p className="text-gray-600">
-              {uploadProgress.current} / {uploadProgress.total} photos uploaded
+              Processing {uploadProgress.current + 1 > uploadProgress.total ? uploadProgress.total : uploadProgress.current + 1} of {uploadProgress.total} images
             </p>
           </div>
 
