@@ -345,13 +345,13 @@ const FollowUpPage = () => {
     if (loading) return <div className="p-10 text-center animate-pulse">Loading Pipeline...</div>;
 
     return (
-        <div className="flex flex-col h-[calc(100vh-80px)] bg-gray-50 dark:bg-gray-900">
+        <div className="flex flex-col h-[calc(100vh-80px)] bg-white dark:bg-gray-900">
 
             {/* 🔹 Top Bar: Global Filters */}
             <div className="px-6 py-4 bg-white dark:bg-gray-800 shadow-sm flex flex-col sm:flex-row gap-4 sm:gap-0 items-center justify-between z-20">
                 <h2 className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2 w-full sm:w-auto justify-center sm:justify-start">
                     🚀 Pipeline Manager
-                    <span className="text-xs font-normal bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-full text-gray-500">
+                    <span className="text-xs font-normal bg-gray-100 px-2 py-1 rounded-full text-gray-500">
                         {bills.length} Deals
                     </span>
                 </h2>
@@ -391,19 +391,19 @@ const FollowUpPage = () => {
                                 className={`w-80 flex flex-col h-full bg-gray-100 dark:bg-gray-800 rounded-xl shadow-lg border-t-4 ${getStageColor(index)} flex-shrink-0`}
                             >
                                 {/* Column Header */}
-                                <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-white dark:bg-gray-850 rounded-t-lg">
+                                <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-white dark:bg-gray-900 rounded-t-lg">
                                     <div className="flex items-center gap-2">
-                                        <h3 className="font-bold text-gray-800 dark:text-gray-100">{stage.name}</h3>
-                                        <span className="bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 text-xs px-2 py-0.5 rounded-full font-mono">
+                                        <h3 className="font-bold text-gray-800 dark:text-white">{stage.name}</h3>
+                                        <span className="bg-gray-200 text-gray-600 text-xs px-2 py-0.5 rounded-full font-mono">
                                             {getBillsForStage(stage._id).length}
                                         </span>
                                     </div>
 
                                     <div className="flex gap-1 opacity-100 group-hover:opacity-100 transition-opacity">
-                                        <button onClick={() => handleEditStage(stage._id, stage.name)} className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-400 hover:text-blue-500">
+                                        <button onClick={() => handleEditStage(stage._id, stage.name)} className="p-1.5 hover:bg-gray-100 rounded text-gray-400 hover:text-blue-500">
                                             <Edit2 className="w-4 h-4" />
                                         </button>
-                                        <button onClick={() => handleDeleteStage(stage._id)} className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-400 hover:text-red-500">
+                                        <button onClick={() => handleDeleteStage(stage._id)} className="p-1.5 hover:bg-gray-100 rounded text-gray-400 hover:text-red-500">
                                             <Trash2 className="w-4 h-4" />
                                         </button>
                                     </div>
@@ -415,7 +415,7 @@ const FollowUpPage = () => {
                                         <div
                                             {...provided.droppableProps}
                                             ref={provided.innerRef}
-                                            className={`flex-1 p-3 min-h-[150px] overflow-y-auto space-y-3 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 ${snapshot.isDraggingOver ? "bg-blue-50/50 dark:bg-blue-900/10" : ""
+                                            className={`flex-1 p-3 min-h-[150px] overflow-y-auto space-y-3 scrollbar-thin scrollbar-thumb-gray-300 ${snapshot.isDraggingOver ? "bg-blue-50/50" : ""
                                                 }`}
                                         >
                                             {getBillsForStage(stage._id).map((bill, idx) => (
@@ -430,13 +430,13 @@ const FollowUpPage = () => {
                                                             {...provided.draggableProps}
                                                             {...provided.dragHandleProps}
                                                             onClick={() => setSelectedBill(bill)}
-                                                            className={`p-4 bg-white dark:bg-gray-700 rounded-xl shadow-sm hover:shadow-md transition-all border border-transparent dark:border-gray-600 group relative cursor-pointer ${snapshot.isDragging ? "rotate-2 scale-105 shadow-2xl z-50 ring-2 ring-blue-500" : ""
+                                                            className={`p-4 bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md transition-all border border-transparent group relative cursor-pointer ${snapshot.isDragging ? "rotate-2 scale-105 shadow-2xl z-50 ring-2 ring-blue-500" : ""
                                                                 } ${bill.priority === 'p1' ? 'border-l-4 border-l-red-500' : ''}`}
                                                             style={{ ...provided.draggableProps.style }}
                                                         >
 
                                                             <div className="flex justify-between items-start mb-3">
-                                                                <h4 className="font-bold text-gray-800 dark:text-white line-clamp-2 leading-tight flex-1 mr-2">
+                                                                <h4 className="font-bold text-gray-800 dark:text-gray-100 line-clamp-2 leading-tight flex-1 mr-2">
                                                                     {bill.name}
                                                                 </h4>
                                                                 {/* Priority Dropdown */}
@@ -467,7 +467,7 @@ const FollowUpPage = () => {
                                                             </div>
 
                                                             <div className="space-y-1">
-                                                                <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1 font-mono">
+                                                                <p className="text-xs text-gray-500 flex items-center gap-1 font-mono">
                                                                     🆔 {bill.consumerNumber || "No ID"}
                                                                 </p>
                                                                 <p className="text-lg font-bold text-gray-700 dark:text-gray-200 tracking-tight">
@@ -475,7 +475,7 @@ const FollowUpPage = () => {
                                                                 </p>
                                                             </div>
 
-                                                            <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-600 flex justify-between text-xs text-gray-400">
+                                                            <div className="mt-3 pt-3 border-t border-gray-100 flex justify-between text-xs text-gray-400">
                                                                 <span>📅 {bill.billDate || "No Date"}</span>
                                                             </div>
                                                         </div>
@@ -493,7 +493,7 @@ const FollowUpPage = () => {
                     {/* Add Stage Button */}
                     <button
                         onClick={handleAddStage}
-                        className="w-80 h-16 flex items-center justify-center border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl text-gray-400 hover:border-blue-500 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all shrink-0 font-medium"
+                        className="w-80 h-16 flex items-center justify-center border-2 border-dashed border-gray-300 rounded-xl text-gray-400 hover:border-blue-500 hover:text-blue-500 hover:bg-blue-50 transition-all shrink-0 font-medium"
                     >
                         <Plus className="w-5 h-5 mr-2" />
                         Add New Pipeline Stage

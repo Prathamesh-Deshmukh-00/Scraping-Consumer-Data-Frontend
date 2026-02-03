@@ -9,7 +9,7 @@ import withReactContent from "sweetalert2-react-content";
 
 // axios config moved to App.jsx
 
-const BillPage = () => {
+const BillPage = ({ theme }) => {
   const [bills, setBills] = useState([]);
   const [filteredBills, setFilteredBills] = useState([]);
   const [search, setSearch] = useState("");
@@ -19,17 +19,11 @@ const BillPage = () => {
   const [showWithMobile, setShowWithMobile] = useState(false);
   const [showWithBill, setShowWithBill] = useState(false);
   const [sortOrder, setSortOrder] = useState("");
-  const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
+  // theme prop is now passed from App.jsx
   const [expandedCard, setExpandedCard] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
 
   const MySwal = withReactContent(Swal);
-
-  // ✅ Handle dark/light mode
-  useEffect(() => {
-    document.documentElement.classList.toggle("dark", theme === "dark");
-    localStorage.setItem("theme", theme);
-  }, [theme]);
 
   // ✅ Fetch bills from backend
   useEffect(() => {
@@ -211,10 +205,7 @@ const BillPage = () => {
   };
 
   return (
-    <div className={`min-h-screen transition-all duration-500 ${theme === "dark"
-      ? "bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900"
-      : "bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50"
-      }`}>
+    <div className={`min-h-screen transition-all duration-500 bg-white dark:bg-gray-900`}>
       <div className="max-w-7xl mx-auto p-4 md:p-6 lg:p-8">
         {/* Header */}
         <motion.div
@@ -230,31 +221,24 @@ const BillPage = () => {
               <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 Billing Dashboard
               </h1>
-              <p className={`text-sm ${theme === "dark" ? "text-gray-400" : "text-gray-600"}`}>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 Manage customer bills efficiently
               </p>
             </div>
           </div>
-          <button
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            className="px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:shadow-lg transform hover:scale-105 transition-all duration-300 flex items-center gap-2"
-          >
-            {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            {theme === "dark" ? "Light" : "Dark"}
-          </button>
         </motion.div>
+
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <motion.div
             whileHover={{ scale: 1.05, y: -5 }}
-            className={`p-5 rounded-2xl shadow-lg ${theme === "dark" ? "bg-gray-800 border border-gray-700" : "bg-white"
-              }`}
+            className="p-5 rounded-2xl shadow-lg bg-white dark:bg-gray-800 dark:border dark:border-gray-700"
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className={`text-sm ${theme === "dark" ? "text-gray-400" : "text-gray-600"}`}>Total Bills</p>
-                <p className={`text-3xl font-bold mt-1 ${theme === "dark" ? "text-white" : ""}`}>{bills.length}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Total Bills</p>
+                <p className="text-3xl font-bold mt-1 text-gray-900 dark:text-white">{bills.length}</p>
               </div>
               <div className="p-3 rounded-xl bg-gray-200 bg-opacity-10">
                 <Receipt className="w-8 h-8 text-blue-500" />
@@ -264,12 +248,11 @@ const BillPage = () => {
 
           <motion.div
             whileHover={{ scale: 1.05, y: -5 }}
-            className={`p-5 rounded-2xl shadow-lg ${theme === "dark" ? "bg-gray-800 border border-gray-700" : "bg-white"
-              }`}
+            className="p-5 rounded-2xl shadow-lg bg-white dark:bg-gray-800 dark:border dark:border-gray-700"
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className={`text-sm ${theme === "dark" ? "text-gray-400" : "text-gray-600"}`}>Pending</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Pending</p>
                 <p className="text-3xl font-bold mt-1 text-yellow-500">{statusCount.pending}</p>
               </div>
               <div className="p-3 rounded-xl bg-yellow-500 bg-opacity-10">
@@ -280,12 +263,11 @@ const BillPage = () => {
 
           <motion.div
             whileHover={{ scale: 1.05, y: -5 }}
-            className={`p-5 rounded-2xl shadow-lg ${theme === "dark" ? "bg-gray-800 border border-gray-700" : "bg-white"
-              }`}
+            className="p-5 rounded-2xl shadow-lg bg-white dark:bg-gray-800 dark:border dark:border-gray-700"
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className={`text-sm ${theme === "dark" ? "text-gray-400" : "text-gray-600"}`}>Success</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Success</p>
                 <p className="text-3xl font-bold mt-1 text-green-500">{statusCount.success}</p>
               </div>
               <div className="p-3 rounded-xl bg-green-500 bg-opacity-10">
@@ -296,12 +278,11 @@ const BillPage = () => {
 
           <motion.div
             whileHover={{ scale: 1.05, y: -5 }}
-            className={`p-5 rounded-2xl shadow-lg ${theme === "dark" ? "bg-gray-800 border border-gray-700" : "bg-white"
-              }`}
+            className="p-5 rounded-2xl shadow-lg bg-white dark:bg-gray-800 dark:border dark:border-gray-700"
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className={`text-sm ${theme === "dark" ? "text-gray-400" : "text-gray-600"}`}>In Process</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">In Process</p>
                 <p className="text-3xl font-bold mt-1 text-blue-500">{statusCount.inprocess}</p>
               </div>
               <div className="p-3 rounded-xl bg-blue-500 bg-opacity-10">
@@ -313,12 +294,10 @@ const BillPage = () => {
 
         {/* Search and Filter Toggle */}
         <div className="flex flex-col md:flex-row gap-4 mb-6">
-          <div className={`flex-1 relative ${theme === "dark" ? "bg-gray-800" : "bg-white"} rounded-xl shadow-lg`}>
-            <Search className={`absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 ${theme === "dark" ? "text-gray-400" : "text-gray-500"
-              }`} />
+          <div className="flex-1 relative bg-white dark:bg-gray-800 rounded-xl shadow-lg">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500 dark:text-gray-400" />
             <input
-              className={`w-full pl-12 pr-4 py-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 ${theme === "dark" ? "bg-gray-800 text-white" : "bg-white"
-                }`}
+              className="w-full pl-12 pr-4 py-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
               placeholder="Search by customer name..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -328,7 +307,7 @@ const BillPage = () => {
             onClick={() => setShowFilters(!showFilters)}
             className={`px-6 py-4 rounded-xl shadow-lg flex items-center gap-2 font-semibold transition-all ${showFilters
               ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white"
-              : theme === "dark" ? "bg-gray-800 text-white hover:bg-gray-700" : "bg-white hover:bg-gray-50"
+              : "bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200"
               }`}
           >
             <Filter className="w-5 h-5" />
@@ -343,13 +322,11 @@ const BillPage = () => {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              className={`mb-6 p-6 rounded-2xl shadow-lg ${theme === "dark" ? "bg-gray-800 border border-gray-700" : "bg-white"
-                }`}
+              className="mb-6 p-6 rounded-2xl shadow-lg bg-white dark:bg-gray-800 dark:border dark:border-gray-700"
             >
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                 <select
-                  className={`p-3 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 ${theme === "dark" ? "bg-gray-700 border-gray-600 text-white" : "bg-gray-50 border-gray-300"
-                    }`}
+                  className="p-3 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white"
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
                 >
@@ -362,15 +339,13 @@ const BillPage = () => {
 
                 <div className="flex gap-2">
                   <input
-                    className={`p-3 rounded-xl border w-1/2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${theme === "dark" ? "bg-gray-700 border-gray-600 text-white" : "bg-gray-50 border-gray-300"
-                      }`}
+                    className="p-3 rounded-xl border w-1/2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white"
                     placeholder="Min ₹"
                     value={minAmount}
                     onChange={(e) => setMinAmount(e.target.value)}
                   />
                   <input
-                    className={`p-3 rounded-xl border w-1/2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${theme === "dark" ? "bg-gray-700 border-gray-600 text-white" : "bg-gray-50 border-gray-300"
-                      }`}
+                    className="p-3 rounded-xl border w-1/2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white"
                     placeholder="Max ₹"
                     value={maxAmount}
                     onChange={(e) => setMaxAmount(e.target.value)}
@@ -378,8 +353,7 @@ const BillPage = () => {
                 </div>
 
                 <select
-                  className={`p-3 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 ${theme === "dark" ? "bg-gray-700 border-gray-600 text-white" : "bg-gray-50 border-gray-300"
-                    }`}
+                  className="p-3 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white"
                   value={sortOrder}
                   onChange={(e) => setSortOrder(e.target.value)}
                 >
@@ -393,7 +367,7 @@ const BillPage = () => {
                     onClick={() => setShowWithMobile(!showWithMobile)}
                     className={`flex-1 px-4 py-3 rounded-xl transition-all font-medium ${showWithMobile
                       ? "bg-green-500 text-white shadow-lg"
-                      : theme === "dark" ? "bg-gray-700 text-gray-300" : "bg-gray-200 text-gray-700"
+                      : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200"
                       }`}
                   >
                     <Phone className="w-4 h-4 inline mr-1" /> Mobile
@@ -402,7 +376,7 @@ const BillPage = () => {
                     onClick={() => setShowWithBill(!showWithBill)}
                     className={`flex-1 px-4 py-3 rounded-xl transition-all font-medium ${showWithBill
                       ? "bg-green-500 text-white shadow-lg"
-                      : theme === "dark" ? "bg-gray-700 text-gray-300" : "bg-gray-200 text-gray-700"
+                      : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200"
                       }`}
                   >
                     <Receipt className="w-4 h-4 inline mr-1" /> Bill
@@ -417,7 +391,7 @@ const BillPage = () => {
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className={`mb-6 text-lg ${theme === "dark" ? "text-gray-300" : "text-gray-700"}`}
+          className="mb-6 text-lg text-gray-700 dark:text-gray-300"
         >
           Showing <span className="font-bold text-blue-600">{filteredBills.length}</span> of{" "}
           <span className="font-bold text-purple-600">{bills.length}</span> bills
@@ -439,10 +413,7 @@ const BillPage = () => {
                     exit={{ opacity: 0, scale: 0.9 }}
                     transition={{ delay: index * 0.05 }}
                     whileHover={{ y: -8 }}
-                    className={`relative rounded-2xl shadow-xl overflow-hidden transition-all duration-300 ${theme === "dark"
-                      ? "bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700"
-                      : "bg-white hover:shadow-2xl"
-                      }`}
+                    className="relative rounded-2xl shadow-xl overflow-hidden transition-all duration-300 bg-white dark:bg-gray-800 dark:border dark:border-gray-700 hover:shadow-2xl"
                   >
                     {/* Status Badge */}
                     <div className={`absolute top-0 right-0 px-4 py-2 rounded-bl-2xl ${getStatusColor(bill.status)} flex items-center gap-2 text-white`}>
@@ -452,37 +423,34 @@ const BillPage = () => {
 
                     <div className="p-6">
                       {/* Customer Name */}
-                      <h2 className={`text-xl font-bold mb-4 mt-8 pr-20 ${theme === "dark" ? "text-white" : ""}`}>
+                      <h2 className="text-xl font-bold mb-4 mt-8 pr-20 text-gray-900 dark:text-white">
                         {bill.name}
                       </h2>
 
                       {/* Key Info Grid */}
                       <div className="space-y-3 mb-4">
-                        <div className={`flex items-center gap-3 p-3 rounded-xl ${theme === "dark" ? "bg-gray-700 bg-opacity-50" : "bg-blue-50"
-                          }`}>
+                        <div className="flex items-center gap-3 p-3 rounded-xl bg-blue-50 dark:bg-gray-700 dark:bg-opacity-50">
                           <Receipt className="w-5 h-5 text-blue-500" />
                           <div className="flex-1">
-                            <p className={`text-xs ${theme === "dark" ? "text-gray-400" : "text-gray-600"}`}>Consumer No.</p>
-                            <p className={`font-semibold ${theme === "dark" ? "text-white" : ""}`}>{bill.consumerNumber}</p>
+                            <p className="text-xs text-gray-600 dark:text-gray-400">Consumer No.</p>
+                            <p className="font-semibold text-gray-900 dark:text-white">{bill.consumerNumber}</p>
                           </div>
                         </div>
 
-                        <div className={`flex items-center gap-3 p-3 rounded-xl ${theme === "dark" ? "bg-gray-700 bg-opacity-50" : "bg-purple-50"
-                          }`}>
+                        <div className="flex items-center gap-3 p-3 rounded-xl bg-purple-50 dark:bg-gray-700 dark:bg-opacity-50">
                           <Calendar className="w-5 h-5 text-purple-500" />
                           <div className="flex-1">
-                            <p className={`text-xs ${theme === "dark" ? "text-gray-400" : "text-gray-600"}`}>Bill Month</p>
-                            <p className={`font-semibold ${theme === "dark" ? "text-white" : ""}`}>{bill.billMonth}</p>
+                            <p className="text-xs text-gray-600 dark:text-gray-400">Bill Month</p>
+                            <p className="font-semibold text-gray-900 dark:text-white">{bill.billMonth}</p>
                           </div>
                         </div>
 
                         {bill.mobileNo && (
-                          <div className={`flex items-center gap-3 p-3 rounded-xl ${theme === "dark" ? "bg-gray-700 bg-opacity-50" : "bg-green-50"
-                            }`}>
+                          <div className="flex items-center gap-3 p-3 rounded-xl bg-green-50 dark:bg-gray-700 dark:bg-opacity-50">
                             <Phone className="w-5 h-5 text-green-500" />
                             <div className="flex-1">
-                              <p className={`text-xs ${theme === "dark" ? "text-gray-400" : "text-gray-600"}`}>Mobile</p>
-                              <p className={`font-semibold ${theme === "dark" ? "text-white" : ""}`}>{bill.mobileNo}</p>
+                              <p className="text-xs text-gray-600 dark:text-gray-400">Mobile</p>
+                              <p className="font-semibold text-gray-900 dark:text-white">{bill.mobileNo}</p>
                             </div>
                           </div>
                         )}
@@ -506,8 +474,7 @@ const BillPage = () => {
                       {/* Expandable Details */}
                       <button
                         onClick={() => setExpandedCard(isExpanded ? null : bill._id)}
-                        className={`w-full py-2 rounded-xl mb-4 font-semibold transition-all ${theme === "dark" ? "bg-gray-700 hover:bg-gray-600 text-white" : "bg-gray-100 hover:bg-gray-200"
-                          }`}
+                        className="w-full py-2 rounded-xl mb-4 font-semibold transition-all bg-gray-100 hover:bg-gray-200 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white"
                       >
                         {isExpanded ? "Show Less ▲" : "Show More Details ▼"}
                       </button>
@@ -522,23 +489,23 @@ const BillPage = () => {
                           >
                             <div className="flex justify-between py-2 border-b border-gray-200 dark:border-gray-700">
                               <span className="text-gray-600 dark:text-gray-400">Billing Unit</span>
-                              <span className={`font-semibold text-right ${theme === "dark" ? "text-white" : ""}`}>{bill.billingUnit}</span>
+                              <span className="font-semibold text-right text-gray-900 dark:text-white">{bill.billingUnit}</span>
                             </div>
                             <div className="flex justify-between py-2 border-b border-gray-200 dark:border-gray-700">
                               <span className="text-gray-600 dark:text-gray-400">Consumption</span>
-                              <span className={`font-semibold ${theme === "dark" ? "text-white" : ""}`}>{bill.consumption}</span>
+                              <span className="font-semibold text-gray-900 dark:text-white">{bill.consumption}</span>
                             </div>
                             <div className="flex justify-between py-2 border-b border-gray-200 dark:border-gray-700">
                               <span className="text-gray-600 dark:text-gray-400">Meter Status</span>
-                              <span className={`font-semibold ${theme === "dark" ? "text-white" : ""}`}>{bill.meterStatus}</span>
+                              <span className="font-semibold text-gray-900 dark:text-white">{bill.meterStatus}</span>
                             </div>
                             <div className="flex justify-between py-2 border-b border-gray-200 dark:border-gray-700">
                               <span className="text-gray-600 dark:text-gray-400">Bill Period</span>
-                              <span className={`font-semibold ${theme === "dark" ? "text-white" : ""}`}>{bill.billPeriod}</span>
+                              <span className="font-semibold text-gray-900 dark:text-white">{bill.billPeriod}</span>
                             </div>
                             <div className="flex justify-between py-2 border-b border-gray-200 dark:border-gray-700">
                               <span className="text-gray-600 dark:text-gray-400">Bill Amount</span>
-                              <span className={`font-semibold ${theme === "dark" ? "text-white" : ""}`}>{bill.billAmount}</span>
+                              <span className="font-semibold text-gray-900 dark:text-white">{bill.billAmount}</span>
                             </div>
                             <div className="flex justify-between py-2 border-b border-gray-200 dark:border-gray-700">
                               <span className="text-gray-600 dark:text-gray-400">After Due Date</span>
@@ -554,7 +521,7 @@ const BillPage = () => {
                             </div>
                             <div className="flex justify-between py-2">
                               <span className="text-gray-600 dark:text-gray-400">Bill Date</span>
-                              <span className={`font-semibold ${theme === "dark" ? "text-white" : ""}`}>{bill.billDate}</span>
+                              <span className="font-semibold text-gray-900 dark:text-white">{bill.billDate}</span>
                             </div>
                           </motion.div>
                         )}
@@ -562,15 +529,13 @@ const BillPage = () => {
 
                       {/* Status Update */}
                       <div className="mb-4">
-                        <label className={`block text-sm font-medium mb-2 ${theme === "dark" ? "text-gray-300" : "text-gray-700"
-                          }`}>
+                        <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                           Update Status
                         </label>
                         <select
                           value={bill.status}
                           onChange={(e) => handleUpdate(bill._id, "status", e.target.value)}
-                          className={`w-full p-3 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 ${theme === "dark" ? "bg-gray-700 border-gray-600 text-white" : "bg-gray-50 border-gray-300"
-                            }`}
+                          className="w-full p-3 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white"
                         >
                           <option value="pending">Pending</option>
                           <option value="inprocess">In Process</option>
@@ -586,8 +551,7 @@ const BillPage = () => {
                               exit={{ opacity: 0, height: 0 }}
                               className="overflow-hidden mt-3"
                             >
-                              <label className={`block text-sm font-medium mb-2 ${theme === "dark" ? "text-gray-300" : "text-gray-700"
-                                }`}>
+                              <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                                 Priority Level
                               </label>
                               <div className="flex gap-2">
@@ -623,8 +587,7 @@ const BillPage = () => {
                           }}
                           placeholder="Add notes or remarks..."
                           rows="3"
-                          className={`w-full p-3 pb-10 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none ${theme === "dark" ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400" : "bg-gray-50 border-gray-300"
-                            }`}
+                          className="w-full p-3 pb-10 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none bg-gray-50 border-gray-300 text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
                         />
                         <button
                           onClick={() => handleUpdate(bill._id, "note", bill.note)}
